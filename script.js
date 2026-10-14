@@ -39,23 +39,24 @@
     if (pre && preloaderActive) {
       var line = pre.querySelector('.preloader__line i');
       var count = pre.querySelector('.preloader__count');
-      var start = performance.now(), DUR = 1500;
+      var start = performance.now(), DUR = 1400;
       var ease = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
       (function tick(now) {
         var t = clamp((now - start) / DUR, 0, 1), v = ease(t);
         if (line) line.style.transform = 'scaleX(' + v + ')';
         if (count) count.textContent = String(Math.round(v * 100)).padStart(2, '0');
         if (t < 1) { requestAnimationFrame(tick); return; }
+        // первый экран стартует под прелоадером, чтобы фото успело проявиться
+        preloaderActive = false;
+        if (readyQueued) root.classList.add('is-ready');
         setTimeout(function () {
           pre.classList.add('is-leaving');
           try { sessionStorage.setItem('f22-seen', '1'); } catch (e) {}
           setTimeout(function () {
-            preloaderActive = false;
             root.classList.remove('has-preloader');
-            if (readyQueued) root.classList.add('is-ready');
-          }, 250);
-          setTimeout(function () { pre.remove(); }, 900);
-        }, 150);
+            pre.remove();
+          }, 850);
+        }, 300);
       })(start);
     } else if (pre) { pre.remove(); }
     if (fade.classList.contains('is-on')) {
