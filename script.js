@@ -34,6 +34,105 @@
   document.addEventListener('DOMContentLoaded', function () {
     document.body.appendChild(fade);
 
+    /* ------------------------------------------------------------------
+       Мобильное меню (бургер). Собирается здесь, чтобы не дублировать
+       разметку на всех 7 страницах. «Проекты» — ссылка на раздел,
+       стрелка рядом раскрывает список кейсов.
+       ------------------------------------------------------------------ */
+    (function buildMobileMenu() {
+      var hdr = document.getElementById('siteHeader');
+      if (!hdr) return;
+      var inProjects = /\/projects\//.test(location.pathname);
+      var home = inProjects ? '../index.html' : '';
+      var pdir = inProjects ? '' : 'projects/';
+      var img = inProjects ? '../images/home/' : 'images/home/';
+      var onHome = !!document.querySelector('.hero');
+      var arrowOut = '<span class="arrow arrow--out"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 11.5l7-7M5.5 4.5h6v6"/></svg><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 11.5l7-7M5.5 4.5h6v6"/></svg></span>';
+      var projects = [
+        ['entrance-malina-park', 'Входные группы ЖК «Малина Парк»', 'Девелопмент, Ростов-на-Дону, 2025', '11G11G458MPY3BJP7VB8PRRKVY'],
+        ['apartment-arhitektor', 'Квартира 45,7 м² в ЖК «Архитектор»', 'Частный интерьер, Москва, 2025', '28259677558R3R0J8AFCT1VQPZ'],
+        ['fromage', 'Ресторан «Fromage»', 'HoReCa, Санкт-Петербург, 2023', '77JVEY8MZJV588YZP59KXNN8CR'],
+        ['entrance-greenside', 'Входные группы ЖК «Гринсайд»', 'Девелопмент, Ростов-на-Дону, 2025', '7MHP977G6SNSZMR1BA5CCB39PQ'],
+        ['showroom-malina-park', 'Шоурум ЖК «Малина Парк»', 'Девелопмент, Ростов-на-Дону, 2025', '2ZYSMY14TABPABFVN132NM559C'],
+        ['house', 'Частный дом 318 м²', 'Частный интерьер, концепт, 2026', '0J0ZRATZMKKG4VMBTREP3DQH4H']
+      ];
+      var current = (location.pathname.match(/projects\/([^\/]+)\.html/) || [])[1];
+      var sections = [['about', 'Обо мне'], ['projects', 'Проекты'], ['services', 'Услуги'], ['process', 'Этапы работы'], ['contacts', 'Контакты']];
+
+      var subHtml = projects.map(function (p) {
+        return '<li><a class="m-menu__project' + (p[0] === current ? ' is-current' : '') + '" href="' + pdir + p[0] + '.html">' +
+          '<span class="m-menu__thumb"><img src="' + img + p[3] + '.webp" alt="" loading="lazy" decoding="async"></span>' +
+          '<span class="m-menu__ptext"><span class="m-menu__ptitle">' + p[1] + '</span><span class="m-menu__pinfo">' + p[2] + '</span></span>' +
+          '<span class="m-menu__parrow">' + arrowOut + '</span></a></li>';
+      }).join('');
+
+      var navHtml = sections.map(function (s, i) {
+        var num = '<span class="m-menu__num">0' + (i + 1) + '</span>';
+        var link = '<a class="m-menu__link" href="' + home + '#' + s[0] + '"' + (onHome ? ' data-spy="' + s[0] + '"' : '') + '>' + num +
+          '<span class="m-menu__mask"><span class="m-menu__label">' + s[1] + (s[0] === 'projects' ? '<sup>' + projects.length + '</sup>' : '') + '</span></span></a>';
+        if (s[0] !== 'projects') return '<li class="m-menu__item">' + link + '</li>';
+        return '<li class="m-menu__item m-menu__item--sub' + (current ? ' is-open' : '') + '"><div class="m-menu__row">' + link +
+          '<button type="button" class="m-menu__toggle" aria-expanded="' + (current ? 'true' : 'false') + '" aria-controls="mMenuProjects" aria-label="Список проектов">' +
+          '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6 8 10.5 12.5 6"/></svg></button></div>' +
+          '<div class="m-menu__sub" id="mMenuProjects"><div class="m-menu__sub-inner"><ul>' + subHtml + '</ul></div></div></li>';
+      }).join('');
+
+      var menu = document.createElement('div');
+      menu.className = 'm-menu';
+      menu.id = 'mMenu';
+      menu.setAttribute('aria-hidden', 'true');
+      menu.innerHTML =
+        '<div class="m-menu__scroll"><nav class="m-menu__nav" aria-label="Меню"><ul>' + navHtml + '</ul></nav>' +
+        '<div class="m-menu__footer">' +
+          '<a href="https://t.me/FedosovaKate" class="btn btn--light has-arrow m-menu__cta" target="_blank" rel="noopener"><span class="btn__label"><span data-text="Обсудить проект">Обсудить проект</span></span><span class="btn__icon">' + arrowOut + '</span></a>' +
+          '<div class="m-menu__contacts"><a href="tel:+79044472189">+7 904 447-21-89</a><a href="https://t.me/FedosovaKate" target="_blank" rel="noopener">Telegram</a><a href="https://www.instagram.com/fedosova.kate/" target="_blank" rel="noopener">Instagram</a></div>' +
+        '</div></div>';
+      document.body.appendChild(menu);
+
+      var burger = document.createElement('button');
+      burger.type = 'button';
+      burger.className = 'burger';
+      burger.setAttribute('aria-label', 'Открыть меню');
+      burger.setAttribute('aria-expanded', 'false');
+      burger.setAttribute('aria-controls', 'mMenu');
+      burger.innerHTML = '<span></span><span></span>';
+      hdr.insertBefore(burger, hdr.querySelector('.site-header__progress'));
+
+      var isOpen = false;
+      function setOpen(open) {
+        if (open === isOpen) return;
+        isOpen = open;
+        root.classList.toggle('menu-open', open);
+        hdr.classList.toggle('is-menu-open', open);
+        if (open) hdr.classList.remove('is-hidden');
+        menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+        burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        burger.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+        if (open) setTimeout(function () { var f = menu.querySelector('.m-menu__link'); if (f) f.focus({ preventScroll: true }); }, 350);
+      }
+      burger.addEventListener('click', function () { setOpen(!isOpen); });
+
+      var item = menu.querySelector('.m-menu__item--sub');
+      var toggle = menu.querySelector('.m-menu__toggle');
+      toggle.addEventListener('click', function () {
+        var o = !item.classList.contains('is-open');
+        item.classList.toggle('is-open', o);
+        toggle.setAttribute('aria-expanded', o ? 'true' : 'false');
+      });
+
+      // клик по пункту: сначала закрываем меню, дальше работает общая
+      // логика ссылок (плавная прокрутка или переход на другую страницу)
+      menu.addEventListener('click', function (e) {
+        var a = e.target.closest('a[href]');
+        if (a && a.target !== '_blank') setOpen(false);
+      });
+      // логотип при открытом меню тоже закрывает его
+      var logo = hdr.querySelector('.site-header__logo');
+      if (logo) logo.addEventListener('click', function () { setOpen(false); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen) { setOpen(false); burger.focus(); } });
+      window.matchMedia('(min-width: 1024px)').addEventListener('change', function (m) { if (m.matches) setOpen(false); });
+    })();
+
     /* ---------- прелоадер: счётчик 0→100 и линия, затем экран уезжает вверх ---------- */
     var pre = document.querySelector('.preloader');
     if (pre && preloaderActive) {
