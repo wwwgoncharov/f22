@@ -13,7 +13,13 @@
   var lerp = function (a, b, t) { return a + (b - a) * t; };
   var clamp = function (v, min, max) { return Math.min(max, Math.max(min, v)); };
 
-  function ready() { root.classList.add('is-ready'); }
+  // пока идёт прелоадер, первый экран не запускаем — он стартует, когда прелоадер уходит
+  var preloaderActive = root.classList.contains('has-preloader');
+  var readyQueued = false;
+  function ready() {
+    if (preloaderActive) { readyQueued = true; return; }
+    root.classList.add('is-ready');
+  }
 
   /* ------------------------------------------------------------------
      Переход между страницами: экран мягко «закрывается» цветом фона
@@ -27,6 +33,31 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     document.body.appendChild(fade);
+
+    /* ---------- прелоадер: счётчик 0→100 и линия, затем экран уезжает вверх ---------- */
+    var pre = document.querySelector('.preloader');
+    if (pre && preloaderActive) {
+      var line = pre.querySelector('.preloader__line i');
+      var count = pre.querySelector('.preloader__count');
+      var start = performance.now(), DUR = 1500;
+      var ease = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+      (function tick(now) {
+        var t = clamp((now - start) / DUR, 0, 1), v = ease(t);
+        if (line) line.style.transform = 'scaleX(' + v + ')';
+        if (count) count.textContent = String(Math.round(v * 100)).padStart(2, '0');
+        if (t < 1) { requestAnimationFrame(tick); return; }
+        setTimeout(function () {
+          pre.classList.add('is-leaving');
+          try { sessionStorage.setItem('f22-seen', '1'); } catch (e) {}
+          setTimeout(function () {
+            preloaderActive = false;
+            root.classList.remove('has-preloader');
+            if (readyQueued) root.classList.add('is-ready');
+          }, 250);
+          setTimeout(function () { pre.remove(); }, 900);
+        }, 150);
+      })(start);
+    } else if (pre) { pre.remove(); }
     if (fade.classList.contains('is-on')) {
       requestAnimationFrame(function () { requestAnimationFrame(function () { fade.classList.remove('is-on'); }); });
     }
@@ -74,6 +105,15 @@
       el.classList.add('reveal-media'); el.setAttribute('data-cursor', 'Открыть');
     });
 
+    /* ---------- фото проявляются только когда уже загружены ---------- */
+    document.querySelectorAll('.reveal-media').forEach(function (el) {
+      var img = el.querySelector('img');
+      if (!img) { el.classList.add('is-loaded'); return; }
+      var done = function () { el.classList.add('is-loaded'); };
+      if (img.complete && img.naturalWidth) done();
+      else { img.addEventListener('load', done, { once: true }); img.addEventListener('error', done, { once: true }); }
+    });
+
     /* ---------- цитата: разбиваем на слова ---------- */
     var words = [];
     var statement = document.querySelector('[data-words]');
@@ -92,7 +132,7 @@
     var items = document.querySelectorAll('.reveal, .reveal-media');
     document.querySelectorAll('[data-reveal-group]').forEach(function (group) {
       group.querySelectorAll('.reveal, .reveal-media').forEach(function (el, i) {
-        var d = reduceMotion ? 0 : Math.min(i * 70, 280);
+        var d = reduceMotion ? 0 : Math.min(i * 60, 180);
         el.style.transitionDelay = d + 'ms';
         var img = el.classList.contains('reveal-media') ? el.querySelector('img') : null;
         if (img) img.style.transitionDelay = d + 'ms';
