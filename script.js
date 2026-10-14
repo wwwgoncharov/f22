@@ -134,12 +134,11 @@
     }
 
     /* ---------- курсор над проектами: «стеклянный» кружок со стрелкой ----------
-       Кружок движется на пружине (чуть перелетает и возвращается) и
-       вытягивается по направлению движения — как желе. Стрелка внутри
-       не деформируется. Только для мыши, при «уменьшении движения» выключен. */
+       Кружок плавно догоняет мышь, без пружины и без вытягивания —
+       всегда остаётся ровным кругом. Только для мыши, при «уменьшении
+       движения» выключен. */
     var cursor = null, cursorBlob = null;
     var mouse = { x: innerWidth / 2, y: innerHeight / 2 }, cur = { x: mouse.x, y: mouse.y };
-    var cVel = { x: 0, y: 0 }, cStretch = 0, cAngle = 0;
     if (finePointer && !reduceMotion && document.querySelector('[data-cursor]')) {
       root.classList.add('has-cursor');
       cursor = document.createElement('div');
@@ -321,16 +320,11 @@
         }
       }
 
-      // курсор: пружина + «желе»
+      // курсор: мягко догоняет мышь, без пружины и без «желе»
       if (cursor) {
-        cVel.x = (cVel.x + (mouse.x - cur.x) * 0.14) * 0.74;   // жёсткость и затухание пружины
-        cVel.y = (cVel.y + (mouse.y - cur.y) * 0.14) * 0.74;
-        cur.x += cVel.x; cur.y += cVel.y;
-        var speed = Math.sqrt(cVel.x * cVel.x + cVel.y * cVel.y);
-        cStretch = lerp(cStretch, Math.min(speed / 55, 0.3), 0.18);
-        if (speed > 0.35) cAngle = Math.atan2(cVel.y, cVel.x) * 57.2958;
+        cur.x = lerp(cur.x, mouse.x, 0.2);
+        cur.y = lerp(cur.y, mouse.y, 0.2);
         cursor.style.transform = 'translate3d(' + cur.x.toFixed(1) + 'px,' + cur.y.toFixed(1) + 'px,0)';
-        cursorBlob.style.transform = 'rotate(' + cAngle.toFixed(1) + 'deg) scale(' + (1 + cStretch).toFixed(3) + ',' + (1 - cStretch * 0.55).toFixed(3) + ')';
       }
 
       requestAnimationFrame(frame);

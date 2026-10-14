@@ -84,10 +84,26 @@ img { display: block; max-width: 100%; }
 /* все фото — с мягким закруглением; isolation + translateZ — чтобы Safari
    не терял скругление, когда картинка внутри приближается */
 .project__media, .about__photo, .service__media, .gallery-item, .project-sibling__image {
+  position: relative;
   border-radius: var(--radius-img);
   isolation: isolate;
   transform: translateZ(0);
 }
+/* фото всегда в полном цвете; у кликабельных при наведении — лёгкое
+   мягкое затемнение поверх (без смены насыщенности и без «вспышек») */
+.project__media::after, .service__media::after, .project-sibling__image::after {
+  content: '';
+  position: absolute; inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: rgba(20, 19, 17, 0.16);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-hover) var(--ease-soft);
+}
+.project:hover .project__media::after,
+.service:hover .service__media::after,
+.project-sibling:hover .project-sibling__image::after { opacity: 1; }
 .nowrap { white-space: nowrap; }   /* составные названия городов не рвутся по дефису */
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
@@ -601,11 +617,11 @@ svg { display: block; flex-shrink: 0; }
 .project:hover .row-icon,
 .project:focus-visible .row-icon { background: var(--color-ink); color: var(--color-bg); border-color: var(--color-ink); }
 
-/* соседние проекты мягко притухают */
+/* у соседних проектов притухает только подпись (фото остаются в цвете);
+   :has — чтобы ничего не мигало, когда курсор проходит через промежуток */
 @media (hover: hover) {
-  .projects-list .project { transition: opacity var(--dur-hover) var(--ease-soft); }
-  .projects-list:hover .project { opacity: 0.55; }
-  .projects-list:hover .project:hover { opacity: 1; }
+  .project__meta { transition: opacity var(--dur-hover) var(--ease-soft); }
+  .projects-list:has(.project:hover) .project:not(:hover) .project__meta { opacity: 0.45; }
 }
 
 /* ==========================================================================
@@ -629,7 +645,7 @@ svg { display: block; flex-shrink: 0; }
   background: rgba(29, 28, 26, 0.24);
   -webkit-backdrop-filter: blur(14px) saturate(1.4);
   backdrop-filter: blur(14px) saturate(1.4);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4), 0 12px 32px rgba(20, 19, 17, 0.18);
+  box-shadow: none;   /* без обводки и без тени */
   opacity: 0;
   transform: scale(0.2);
   transition: transform 0.75s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
@@ -657,48 +673,83 @@ svg { display: block; flex-shrink: 0; }
 /* ==========================================================================
    Услуги — строки спецификации
    ========================================================================== */
-/* услуги: номер, название, состав, фото — строки без линий, разделены воздухом */
-.services-list { display: flex; flex-direction: column; gap: clamp(36px, 4vw, 64px); }
+/* услуги — строки «спецификации», тот же язык, что у контактов в подвале:
+   номер слева (как подпись строки), крупное название, состав и маленькое
+   фото справа; между строками тонкие линии, которые прорисовываются при
+   появлении. При наведении тёмная линия мягко проходит по низу строки,
+   название чуть сдвигается, текст соседних строк притухает (фото — нет). */
+.services-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--color-line); }
 .service {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: var(--col-gap);
-  align-items: start;
+  align-items: center;
+  padding: clamp(18px, 1.9vw, 28px) 0;
 }
-.service .row-num { grid-column: 1 / span 3; padding-top: 0.75em; }
+.service::before {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: var(--color-line);
+  transform-origin: left;
+  transition: transform 1.2s var(--ease-in-out);
+  transition-delay: inherit;
+}
+.js .service:not(.visible)::before { transform: scaleX(0); }
+.service::after {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: var(--color-ink);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 1.1s var(--ease-soft);
+}
+.service:hover::after { transform: scaleX(1); transform-origin: left; }
+
+.service__num {
+  grid-column: 1 / span 3;
+  font-size: var(--text-caption);
+  letter-spacing: 0.02em;
+  color: var(--color-ink-soft);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--dur-hover) var(--ease-soft), opacity var(--dur-hover) var(--ease-soft);
+}
 .service__title {
   grid-column: 4 / span 4;
   font-family: var(--font-display);
   font-weight: 300;
   font-size: clamp(26px, 2.6vw, 40px);
-  line-height: 1.1;
+  line-height: 1.15;
   letter-spacing: -0.01em;
-  transition: transform var(--dur-hover) var(--ease-soft);
+  transition: transform var(--dur-hover) var(--ease-soft), opacity var(--dur-hover) var(--ease-soft);
 }
-.service__items { grid-column: 8 / span 3; line-height: 1.8; color: var(--color-ink-soft); padding-top: 4px; transition: transform var(--dur-hover) var(--ease-soft) 0.04s; }
+.service__items {
+  grid-column: 8 / span 3;
+  line-height: 1.45;
+  color: var(--color-ink-soft);
+  transition: opacity var(--dur-hover) var(--ease-soft);
+}
+.service__items li + li { margin-top: 6px; }
 .service__items li { transition: color var(--dur-hover) var(--ease-soft); }
 .service__media {
   grid-column: 11 / -1;
-  aspect-ratio: 4 / 3;
+  justify-self: end;
+  width: 100%;
+  max-width: 160px;
+  aspect-ratio: 3 / 2;
   overflow: hidden;
   background: var(--color-surface);
 }
-.service__media img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  filter: saturate(0.75);
-  transition: transform 1.6s var(--ease-soft), filter 1s ease;
-}
-.service:hover .row-num { color: var(--color-ink); }
-.service:hover .service__title,
-.service:hover .service__items { transform: translateX(8px); }
+.service__media img { width: 100%; height: 100%; object-fit: cover; }
+
+.service:hover .service__num { color: var(--color-ink); }
+.service:hover .service__title { transform: translateX(8px); }
 .service:hover .service__items li { color: var(--color-ink); }
-.service:hover .service__media img { transform: scale(1.06); filter: saturate(1); }
-/* соседние строки притухают (селектор сильнее правила появления блоков) */
+/* притухает только текст соседних строк и только когда курсор на строке */
 @media (hover: hover) {
-  .js .service.visible { transition: opacity var(--dur-hover) var(--ease-soft), transform 1.2s var(--ease); }
-  .js .services-list:hover .service.visible { opacity: 0.5; }
-  .js .services-list:hover .service.visible:hover { opacity: 1; }
+  .services-list:has(.service:hover) .service:not(:hover) :is(.service__num, .service__title, .service__items) { opacity: 0.45; }
 }
 
 /* ==========================================================================
@@ -732,8 +783,7 @@ svg { display: block; flex-shrink: 0; }
 .step:hover .step__text { color: var(--color-ink); }
 @media (hover: hover) {
   .js .step.visible { transition: opacity var(--dur-hover) var(--ease-soft), transform 1.2s var(--ease); }
-  .js .steps:hover .step.visible { opacity: 0.5; }
-  .js .steps:hover .step.visible:hover { opacity: 1; }
+  .js .steps:has(.step:hover) .step.visible:not(:hover) { opacity: 0.5; }
 }
 
 /* ==========================================================================
@@ -936,8 +986,7 @@ svg { display: block; flex-shrink: 0; }
 .fb-row:hover .fb-row__icon, .fb-row:focus-within .fb-row__icon { background: var(--color-on-dark); color: var(--color-ink); border-color: var(--color-on-dark); }
 @media (hover: hover) {
   .fb-row__value { transition: transform var(--dur-hover) var(--ease-soft), opacity var(--dur-hover) var(--ease-soft); }
-  .fb-rows:hover .fb-row__value { opacity: 0.45; }
-  .fb-rows:hover .fb-row:hover .fb-row__value { opacity: 1; }
+  .fb-rows:has(.fb-row:hover) .fb-row:not(:hover) .fb-row__value { opacity: 0.45; }
 }
 .fb-row .copy__toast { left: auto; right: 0; }
 
@@ -1093,9 +1142,8 @@ svg { display: block; flex-shrink: 0; }
 .project-sibling__title { font-family: var(--font-display); font-weight: 300; font-size: clamp(22px, 1.9vw, 30px); line-height: 1.2; }
 .project-sibling__location { font-size: var(--text-small); color: var(--color-ink-soft); margin-top: 4px; }
 @media (hover: hover) {
-  .project-sibling { transition: opacity var(--dur-hover) var(--ease-soft); }
-  .project-siblings:hover .project-sibling { opacity: 0.55; }
-  .project-siblings:hover .project-sibling:hover { opacity: 1; }
+  .project-sibling__meta { transition: opacity var(--dur-hover) var(--ease-soft); }
+  .project-siblings:has(.project-sibling:hover) .project-sibling:not(:hover) .project-sibling__meta { opacity: 0.45; }
 }
 
 .back-to-portfolio-wrap { display: flex; justify-content: center; padding-bottom: var(--space-md); }
@@ -1122,7 +1170,6 @@ svg { display: block; flex-shrink: 0; }
 .js .reveal-media.visible img { clip-path: inset(0 0 0 0); transform: scale(1); }
 .js .project:hover .reveal-media.visible img,
 .js .project-sibling:hover .reveal-media.visible img { transform: scale(1.035); transition-duration: 1.4s; }
-.js .service:hover .service__media.reveal-media.visible img { transform: scale(1.06); }
 
 /* переход между страницами: мягкое затемнение фоном страницы */
 .page-fade {
@@ -1163,11 +1210,10 @@ svg { display: block; flex-shrink: 0; }
 
   .statement__text { margin-left: 0; }
 
-  .service .row-num { grid-column: 1 / span 2; }
+  .service__num { grid-column: 1 / span 2; }
   .service__title { grid-column: 3 / span 5; }
-  .service__items { grid-column: 8 / -1; }
+  .service__items { grid-column: 8 / span 3; }
   .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .service__media { display: none; }
 
 
   .project-hero__row--title .project-hero__cell:first-child { grid-column: 1 / -1; }
@@ -1199,11 +1245,11 @@ svg { display: block; flex-shrink: 0; }
   .project--wide .project__media, .project__media { aspect-ratio: 4 / 3; }
   .row-icon { width: 40px; height: 40px; }
 
-  .service { row-gap: 8px; }
-  .service .row-num, .service__title, .service__items { grid-column: 1 / -1; }
+  .service { grid-template-columns: 1fr 96px; row-gap: 6px; align-items: start; }
+  .service__num, .service__title, .service__items { grid-column: 1; }
+  .service__items { margin-top: 6px; }
+  .service__media { grid-column: 2; grid-row: 1 / span 3; max-width: none; align-self: center; }
   .steps { grid-template-columns: 1fr; row-gap: var(--space-md); }
-  .service .row-num { padding-top: 0; }
-  .service__items { padding-top: 0; }
 
 
   .project-hero__cell, .project-hero__cell + .project-hero__cell { grid-column: 1 / -1; }
