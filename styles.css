@@ -1028,7 +1028,7 @@ svg { display: block; flex-shrink: 0; }
 }
 .fb-meta__city { grid-column: 1 / span 3; display: flex; flex-direction: column; gap: 4px; }
 /* «Наверх» — в одной строке с городом и разделами, у правого края */
-.fb-meta .to-top { grid-column: 11 / -1; justify-self: end; }
+.fb-meta .to-top { grid-column: 11 / -1; justify-self: end; align-self: center; }   /* ровно посередине между линиями */
 .fb-meta__nav { grid-column: 4 / span 7; display: flex; flex-wrap: wrap; gap: 8px clamp(20px, 2.4vw, 40px); }
 .footer--b .footer__bottom { border-top-color: var(--footer-line); }
 
