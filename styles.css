@@ -1476,3 +1476,117 @@ svg { display: block; flex-shrink: 0; }
   .site-header { grid-template-columns: 1fr auto; }
   .site-header__cta { display: none; }
 }
+
+/* ==========================================================================
+   Проект в разработке: пометка на карточке, пункт в меню, окно
+   ========================================================================== */
+.wip-dot {
+  position: relative; flex: none;
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: #c8a46a;                       /* тёплый «янтарный» — единственный акцент */
+}
+.wip-dot::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 50%;
+  border: 1px solid #c8a46a; opacity: 0;
+  animation: wip-pulse 2.4s var(--ease-soft) infinite;
+}
+@keyframes wip-pulse { 0% { transform: scale(0.4); opacity: 0.7; } 80%, 100% { transform: scale(1.6); opacity: 0; } }
+
+/* карточка на главной */
+.project--wip { cursor: pointer; }
+.wip-badge {
+  position: absolute; z-index: 2; left: 20px; top: 20px;
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 34px; padding: 0 16px 0 14px; border-radius: 999px;
+  font-size: var(--text-caption); letter-spacing: 0.01em; color: var(--color-ink);
+  background: rgba(242, 241, 238, 0.82);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.project__soon {
+  grid-column: 2; grid-row: 1 / span 2;
+  display: inline-flex; align-items: center; height: 44px; padding: 0 18px;
+  border: 1px solid var(--color-line); border-radius: 999px;
+  font-size: var(--text-caption); color: var(--color-ink-soft);
+  transition: border-color var(--dur-hover) var(--ease-soft), color var(--dur-hover) var(--ease-soft);
+}
+.project--wip:hover .project__soon { border-color: var(--color-ink); color: var(--color-ink); }
+.project--wip:hover .project__media img { transform: scale(1.015); }   /* мягче, чем у готовых */
+@media (max-width: 720px) {
+  .wip-badge { left: 12px; top: 12px; height: 30px; padding: 0 12px 0 11px; font-size: 13px; }
+  .project__soon { height: 36px; padding: 0 14px; font-size: 13px; }
+}
+
+/* окно «проект в разработке» */
+.wip-modal {
+  position: fixed; inset: 0; z-index: 250;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  visibility: hidden; pointer-events: none;
+  transition: visibility 0s linear 0.5s;
+}
+.wip-modal.is-open { visibility: visible; pointer-events: auto; transition: visibility 0s; }
+.wip-modal__backdrop {
+  position: absolute; inset: 0;
+  background: rgba(29, 28, 26, 0.38);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  opacity: 0; transition: opacity 0.45s ease;
+}
+.wip-modal.is-open .wip-modal__backdrop { opacity: 1; }
+.wip-modal__card {
+  position: relative; width: 100%; max-width: 460px;
+  padding: 28px 32px 32px;
+  background: var(--color-bg); color: var(--color-ink);
+  border-radius: 12px;
+  box-shadow: 0 30px 80px -30px rgba(29, 28, 26, 0.45);
+  opacity: 0; transform: translateY(18px) scale(0.985);
+  transition: opacity 0.35s ease, transform 0.5s var(--ease);
+}
+.wip-modal.is-open .wip-modal__card { opacity: 1; transform: none; transition: opacity 0.45s ease 0.05s, transform 0.8s var(--ease) 0.05s; }
+.wip-modal__top { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+.wip-modal__label { display: inline-flex; align-items: center; gap: 10px; font-size: var(--text-caption); color: var(--color-ink-soft); }
+.wip-modal__close {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; margin: -6px -10px -6px 0; border-radius: 50%;
+  border: 1px solid var(--color-line);
+  transition: background-color var(--dur-hover) var(--ease-soft), color var(--dur-hover) var(--ease-soft), border-color var(--dur-hover) var(--ease-soft), transform 0.6s var(--ease);
+}
+.wip-modal__close svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
+.wip-modal__close:hover { background: var(--color-ink); color: var(--color-bg); border-color: var(--color-ink); transform: rotate(90deg); }
+.wip-modal__title {
+  font-family: var(--font-display); font-weight: 300;
+  font-size: clamp(28px, 3vw, 36px); line-height: 1.1; letter-spacing: -0.01em;
+  margin-bottom: 16px;
+}
+.wip-modal__text { font-size: var(--text-body); line-height: 1.55; color: var(--color-ink); }
+.wip-modal__text--soft { margin-top: 18px; font-size: var(--text-small); color: var(--color-ink-soft); }
+.wip-modal__links { display: flex; gap: 28px; margin-top: 8px; font-size: var(--text-small); }
+.wip-modal__links a { display: inline-flex; align-items: center; gap: 6px; padding-bottom: 2px; }
+.wip-modal__ok { width: 100%; justify-content: center; margin-top: 28px; }
+html.modal-open, html.modal-open body { overflow: hidden; }
+
+/* на телефоне окно выезжает снизу, как шторка */
+@media (max-width: 720px) {
+  .wip-modal { align-items: flex-end; padding: 0; }
+  .wip-modal__card {
+    max-width: none; border-radius: 16px 16px 0 0;
+    padding: 22px var(--gutter) calc(24px + env(safe-area-inset-bottom));
+    transform: translateY(100%);
+  }
+  .wip-modal.is-open .wip-modal__card { transition: opacity 0.3s ease, transform 0.7s var(--ease); }
+  .wip-modal__top { margin-bottom: 22px; }
+}
+
+/* мобильное меню: группа «В разработке» */
+@media (max-width: 1023px) {
+  .m-menu__group {
+    margin-top: 14px; padding: 14px 0 6px;
+    border-top: 1px solid var(--color-on-dark-line);
+    font-size: 12px; letter-spacing: 0.04em; color: var(--color-on-dark-soft);
+  }
+  .m-menu__project--wip { width: 100%; text-align: left; }
+  .m-menu__project--wip .m-menu__thumb img { opacity: 0.55; }
+  .m-menu__project--wip .m-menu__ptitle { color: var(--color-on-dark-soft); }
+  .m-menu__project--wip .wip-dot { margin-right: 5px; }
+  .m-menu__item--sub.is-open .m-menu__sub li:nth-child(7) { transition-delay: 0.24s; }
+  .m-menu__item--sub.is-open .m-menu__sub li:nth-child(8) { transition-delay: 0.28s; }
+}

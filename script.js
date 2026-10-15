@@ -54,22 +54,33 @@
         ['fromage', 'Ресторан «Fromage»', 'HoReCa, Санкт-Петербург, 2023', '77JVEY8MZJV588YZP59KXNN8CR'],
         ['entrance-greenside', 'Входные группы ЖК «Гринсайд»', 'Девелопмент, Ростов-на-Дону, 2025', '7MHP977G6SNSZMR1BA5CCB39PQ'],
         ['showroom-malina-park', 'Шоурум ЖК «Малина Парк»', 'Девелопмент, Ростов-на-Дону, 2025', '2ZYSMY14TABPABFVN132NM559C'],
-        ['house', 'Частный дом 318 м²', 'Частный интерьер, концепт, 2026', '0J0ZRATZMKKG4VMBTREP3DQH4H']
+        ['house', 'Частный дом 318 м²', 'Частный интерьер, концепт, 2026', '0J0ZRATZMKKG4VMBTREP3DQH4H', 'wip']
       ];
       var current = (location.pathname.match(/projects\/([^\/]+)\.html/) || [])[1];
       var sections = [['about', 'Обо мне'], ['projects', 'Проекты'], ['services', 'Услуги'], ['process', 'Этапы работы'], ['contacts', 'Контакты']];
 
-      var subHtml = projects.map(function (p) {
+      // готовые проекты — ссылками; проекты в разработке — отдельной группой внизу, без перехода
+      var ready = projects.filter(function (p) { return !p[4]; });
+      var wip = projects.filter(function (p) { return p[4] === 'wip'; });
+      var subHtml = ready.map(function (p) {
         return '<li><a class="m-menu__project' + (p[0] === current ? ' is-current' : '') + '" href="' + pdir + p[0] + '.html">' +
           '<span class="m-menu__thumb"><img src="' + img + p[3] + '.webp" alt="" loading="lazy" decoding="async"></span>' +
           '<span class="m-menu__ptext"><span class="m-menu__ptitle">' + p[1] + '</span><span class="m-menu__pinfo">' + p[2] + '</span></span>' +
           '<span class="m-menu__parrow">' + arrowOut + '</span></a></li>';
       }).join('');
+      if (wip.length) {
+        subHtml += '<li class="m-menu__group" aria-hidden="true">В разработке</li>' + wip.map(function (p) {
+          return '<li><button type="button" class="m-menu__project m-menu__project--wip" data-wip aria-haspopup="dialog">' +
+            '<span class="m-menu__thumb"><img src="' + img + p[3] + '.webp" alt="" loading="lazy" decoding="async"></span>' +
+            '<span class="m-menu__ptext"><span class="m-menu__ptitle">' + p[1] + '</span><span class="m-menu__pinfo">Проект в работе — кейс появится позже</span></span>' +
+            '<span class="wip-dot" aria-hidden="true"></span></button></li>';
+        }).join('');
+      }
 
       var navHtml = sections.map(function (s, i) {
         var num = '<span class="m-menu__num">0' + (i + 1) + '</span>';
         var link = '<a class="m-menu__link" href="' + home + '#' + s[0] + '"' + (onHome ? ' data-spy="' + s[0] + '"' : '') + '>' + num +
-          '<span class="m-menu__mask"><span class="m-menu__label">' + s[1] + (s[0] === 'projects' ? '<sup>' + projects.length + '</sup>' : '') + '</span></span></a>';
+          '<span class="m-menu__mask"><span class="m-menu__label">' + s[1] + (s[0] === 'projects' ? '<sup>' + ready.length + '</sup>' : '') + '</span></span></a>';
         if (s[0] !== 'projects') return '<li class="m-menu__item">' + link + '</li>';
         return '<li class="m-menu__item m-menu__item--sub' + (current ? ' is-open' : '') + '"><div class="m-menu__row">' + link +
           '<button type="button" class="m-menu__toggle" aria-expanded="' + (current ? 'true' : 'false') + '" aria-controls="mMenuProjects" aria-label="Список проектов">' +
@@ -131,6 +142,72 @@
       if (logo) logo.addEventListener('click', function () { setOpen(false); });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen) { setOpen(false); burger.focus(); } });
       window.matchMedia('(min-width: 1024px)').addEventListener('change', function (m) { if (m.matches) setOpen(false); });
+    })();
+
+    /* ------------------------------------------------------------------
+       Проект в разработке: вместо перехода — аккуратное окно
+       (карточка на главной и пункт в мобильном меню, атрибут data-wip)
+       ------------------------------------------------------------------ */
+    (function wipDialog() {
+      if (!document.querySelector('[data-wip]')) return;
+      var closeIcon = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg>';
+      var out = '<span class="arrow arrow--out"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 11.5l7-7M5.5 4.5h6v6"/></svg><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 11.5l7-7M5.5 4.5h6v6"/></svg></span>';
+      var dlg = document.createElement('div');
+      dlg.className = 'wip-modal';
+      dlg.setAttribute('role', 'dialog');
+      dlg.setAttribute('aria-modal', 'true');
+      dlg.setAttribute('aria-labelledby', 'wipTitle');
+      dlg.setAttribute('aria-hidden', 'true');
+      dlg.innerHTML =
+        '<div class="wip-modal__backdrop" data-wip-close></div>' +
+        '<div class="wip-modal__card">' +
+          '<div class="wip-modal__top"><span class="wip-modal__label"><span class="wip-dot" aria-hidden="true"></span>Проект в разработке</span>' +
+          '<button type="button" class="wip-modal__close" data-wip-close aria-label="Закрыть">' + closeIcon + '</button></div>' +
+          '<h2 class="wip-modal__title" id="wipTitle">Частный дом 318 м²</h2>' +
+          '<p class="wip-modal__text">Этот интерьер ещё в работе, поэтому подробного кейса пока нет. Когда проект будет реализован, здесь появятся фотографии и история создания.</p>' +
+          '<p class="wip-modal__text wip-modal__text--soft">Следите за новостями студии:</p>' +
+          '<div class="wip-modal__links">' +
+            '<a href="https://t.me/FedosovaKate" target="_blank" rel="noopener" class="hover-line has-arrow">Telegram ' + out + '</a>' +
+            '<a href="https://www.instagram.com/fedosova.kate/" target="_blank" rel="noopener" class="hover-line has-arrow">Instagram ' + out + '</a>' +
+          '</div>' +
+          '<button type="button" class="btn btn--dark btn--plain wip-modal__ok" data-wip-close><span class="btn__label"><span data-text="Понятно">Понятно</span></span></button>' +
+        '</div>';
+      document.body.appendChild(dlg);
+
+      var lastFocus = null, open = false;
+      function show() {
+        if (open) return; open = true;
+        lastFocus = document.activeElement;
+        root.classList.add('modal-open');
+        dlg.setAttribute('aria-hidden', 'false');
+        dlg.classList.add('is-open');
+        setTimeout(function () { dlg.querySelector('.wip-modal__close').focus({ preventScroll: true }); }, 60);
+      }
+      function hide() {
+        if (!open) return; open = false;
+        dlg.classList.remove('is-open');
+        dlg.setAttribute('aria-hidden', 'true');
+        root.classList.remove('modal-open');
+        if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+      }
+      // перехват раньше общего обработчика ссылок (фаза захвата) — никуда не уводит
+      document.addEventListener('click', function (e) {
+        var t = e.target.closest('[data-wip]');
+        if (!t) return;
+        e.preventDefault();
+        e.stopPropagation();
+        show();
+      }, true);
+      dlg.addEventListener('click', function (e) { if (e.target.closest('[data-wip-close]')) hide(); });
+      document.addEventListener('keydown', function (e) {
+        if (!open) return;
+        if (e.key === 'Escape') { e.stopPropagation(); hide(); }
+        if (e.key === 'Tab') {   // фокус не уходит за пределы окна
+          var f = dlg.querySelectorAll('button, a[href]'), first = f[0], last = f[f.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+      }, true);
     })();
 
     /* ---------- прелоадер: счётчик 0→100 и линия, затем экран уезжает вверх ---------- */
