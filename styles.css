@@ -687,6 +687,11 @@ svg { display: block; flex-shrink: 0; }
   transition: transform 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) 0.04s, opacity 0.3s ease;
 }
 .cursor.is-active .cursor__arrow { opacity: 1; transform: none; }
+/* проект в разработке: вместо стрелки — часы, тот же «стеклянный» кружок */
+.cursor__wip { transform: scale(0.4); }
+.cursor.is-active .cursor__wip,
+.cursor.is-active.is-wip .cursor__arrow:not(.cursor__wip) { opacity: 0; }
+.cursor.is-active.is-wip .cursor__wip { opacity: 1; transform: none; }
 @media (hover: hover) and (pointer: fine) {
   .has-cursor [data-cursor] { cursor: none; }
 }

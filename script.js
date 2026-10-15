@@ -362,11 +362,17 @@
       cursor.className = 'cursor';
       cursor.setAttribute('aria-hidden', 'true');
       cursor.innerHTML = '<div class="cursor__blob"><div class="cursor__glass"></div></div>' +
-        '<svg class="cursor__arrow" viewBox="0 0 24 24"><path d="M7 17 17 7M8.5 7H17v8.5"/></svg>';
+        '<svg class="cursor__arrow" viewBox="0 0 24 24"><path d="M7 17 17 7M8.5 7H17v8.5"/></svg>' +
+        '<svg class="cursor__arrow cursor__wip" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></svg>';
       cursorBlob = cursor.querySelector('.cursor__blob');
       document.body.appendChild(cursor);
       document.addEventListener('mouseover', function (e) {
-        if (e.target.closest('[data-cursor]')) cursor.classList.add('is-active');
+        var t = e.target.closest('[data-cursor]');
+        if (t) {
+          // у проекта в разработке вместо стрелки ↗ — значок «часы»
+          cursor.classList.toggle('is-wip', t.getAttribute('data-cursor') === 'wip');
+          cursor.classList.add('is-active');
+        }
       });
       document.addEventListener('mouseout', function (e) {
         var t = e.target.closest('[data-cursor]');
