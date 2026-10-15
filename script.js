@@ -171,7 +171,7 @@
           '<button type="button" class="wip-modal__close" data-wip-close aria-label="Закрыть">' + closeIcon + '</button></div>' +
           '<h2 class="wip-modal__title" id="wipTitle">Частный дом 318 м²</h2>' +
           '<p class="wip-modal__text">Этот интерьер ещё в работе, поэтому подробного кейса пока нет. Когда проект будет реализован, здесь появятся фотографии и история создания.</p>' +
-          '<p class="wip-modal__text wip-modal__text--soft">Следите за новостями студии:</p>' +
+          '<p class="wip-modal__text wip-modal__text--soft">Следите за новостями:</p>' +
           '<div class="wip-modal__links">' +
             '<a href="https://t.me/FedosovaKate" target="_blank" rel="noopener" class="hover-line has-arrow">Telegram ' + out + '</a>' +
             '<a href="https://www.instagram.com/fedosova.kate/" target="_blank" rel="noopener" class="hover-line has-arrow">Instagram ' + out + '</a>' +
