@@ -1597,3 +1597,26 @@ html.modal-open, html.modal-open body { overflow: hidden; }
   .m-menu__item--sub.is-open .m-menu__sub li:nth-child(7) { transition-delay: 0.24s; }
   .m-menu__item--sub.is-open .m-menu__sub li:nth-child(8) { transition-delay: 0.28s; }
 }
+
+/* мобильное меню — уточнения 15.10 */
+@media (max-width: 1023px) {
+  /* фото проекта по высоте ровно от верха названия до низа подписи */
+  .m-menu__project { align-items: stretch; }
+  .m-menu__thumb { position: relative; height: auto; min-height: 40px; align-self: stretch; margin: 0.22em 0 0.18em; }
+  .m-menu__thumb img { position: absolute; inset: 0; }
+  .m-menu__parrow, .m-menu__project .wip-dot { align-self: center; }
+  .m-menu__ptitle { line-height: 1.25; }
+
+  /* при прокрутке меню под логотипом и крестиком появляется подложка */
+  .site-header.is-menu-open.is-menu-scrolled {
+    background: rgba(29, 28, 26, 0.86);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    border-color: var(--color-on-dark-line);
+  }
+
+  /* стрелки ↗ у Telegram и Instagram, как на всём сайте */
+  .m-menu__contacts { gap: 10px 16px; }
+  .m-menu__contacts a.has-arrow { display: inline-flex; align-items: center; gap: 6px; }
+  .m-menu__contacts .arrow { width: 14px; height: 14px; }
+  .m-menu__contacts .arrow svg { width: 14px; height: 14px; }
+}

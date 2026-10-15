@@ -2,7 +2,7 @@
 // Чистый JS без библиотек. Все анимации идут через один requestAnimationFrame
 // и трогают только transform / opacity — это и держит скролл плавным.
 // Мышиные эффекты (курсор, «магнитные» кнопки, параллакс от мыши) включаются
-// только на устройствах с мышью; при «уменьшении движения» всё отключается.
+// только на устройствах с мышью; при «уменьшении движения» всё отключается.
 
 (function () {
   'use strict';
@@ -49,11 +49,11 @@
       var onHome = !!document.querySelector('.hero');
       var arrowOut = '<span class="arrow arrow--out"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 11.5l7-7M5.5 4.5h6v6"/></svg><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 11.5l7-7M5.5 4.5h6v6"/></svg></span>';
       var projects = [
-        ['entrance-malina-park', 'Входные группы ЖК «Малина Парк»', 'Девелопмент, Ростов-на-Дону, 2025', '11G11G458MPY3BJP7VB8PRRKVY'],
-        ['apartment-arhitektor', 'Квартира 45,7 м² в ЖК «Архитектор»', 'Частный интерьер, Москва, 2025', '28259677558R3R0J8AFCT1VQPZ'],
+        ['entrance-malina-park', 'Входные группы ЖК «Малина Парк»', 'Девелопмент, Ростов-на-Дону, 2025', '11G11G458MPY3BJP7VB8PRRKVY'],
+        ['apartment-arhitektor', 'Квартира 45,7 м² в ЖК «Архитектор»', 'Частный интерьер, Москва, 2025', '28259677558R3R0J8AFCT1VQPZ'],
         ['fromage', 'Ресторан «Fromage»', 'HoReCa, Санкт-Петербург, 2023', '77JVEY8MZJV588YZP59KXNN8CR'],
-        ['entrance-greenside', 'Входные группы ЖК «Гринсайд»', 'Девелопмент, Ростов-на-Дону, 2025', '7MHP977G6SNSZMR1BA5CCB39PQ'],
-        ['showroom-malina-park', 'Шоурум ЖК «Малина Парк»', 'Девелопмент, Ростов-на-Дону, 2025', '2ZYSMY14TABPABFVN132NM559C'],
+        ['entrance-greenside', 'Входные группы ЖК «Гринсайд»', 'Девелопмент, Ростов-на-Дону, 2025', '7MHP977G6SNSZMR1BA5CCB39PQ'],
+        ['showroom-malina-park', 'Шоурум ЖК «Малина Парк»', 'Девелопмент, Ростов-на-Дону, 2025', '2ZYSMY14TABPABFVN132NM559C'],
         ['house', 'Частный дом 318 м²', 'Частный интерьер, концепт, 2026', '0J0ZRATZMKKG4VMBTREP3DQH4H', 'wip']
       ];
       var current = (location.pathname.match(/projects\/([^\/]+)\.html/) || [])[1];
@@ -96,9 +96,13 @@
         '<div class="m-menu__scroll"><nav class="m-menu__nav" aria-label="Меню"><ul>' + navHtml + '</ul></nav>' +
         '<div class="m-menu__footer">' +
           '<a href="https://t.me/FedosovaKate" class="btn btn--light has-arrow m-menu__cta" target="_blank" rel="noopener"><span class="btn__label"><span data-text="Обсудить проект">Обсудить проект</span></span><span class="btn__icon">' + arrowOut + '</span></a>' +
-          '<div class="m-menu__contacts"><a href="tel:+79044472189">+7 904 447-21-89</a><a href="https://t.me/FedosovaKate" target="_blank" rel="noopener">Telegram</a><a href="https://www.instagram.com/fedosova.kate/" target="_blank" rel="noopener">Instagram</a></div>' +
+          '<div class="m-menu__contacts"><a href="tel:+79044472189">+7 904 447-21-89</a><a href="https://t.me/FedosovaKate" target="_blank" rel="noopener" class="has-arrow">Telegram ' + arrowOut + '</a><a href="https://www.instagram.com/fedosova.kate/" target="_blank" rel="noopener" class="has-arrow">Instagram ' + arrowOut + '</a></div>' +
         '</div></div>';
       document.body.appendChild(menu);
+      var menuScroll = menu.querySelector('.m-menu__scroll');
+      menuScroll.addEventListener('scroll', function () {
+        hdr.classList.toggle('is-menu-scrolled', menuScroll.scrollTop > 4);
+      }, { passive: true });
 
       var burger = document.createElement('button');
       burger.type = 'button';
@@ -114,6 +118,8 @@
         if (open === isOpen) return;
         isOpen = open;
         root.classList.toggle('menu-open', open);
+        if (!open) hdr.classList.remove('is-menu-scrolled');
+        if (open) menuScroll.scrollTop = 0;
         hdr.classList.toggle('is-menu-open', open);
         if (open) hdr.classList.remove('is-hidden');
         menu.setAttribute('aria-hidden', open ? 'false' : 'true');
@@ -353,7 +359,7 @@
     /* ---------- курсор над проектами: «стеклянный» кружок со стрелкой ----------
        Кружок плавно догоняет мышь, без пружины и без вытягивания —
        всегда остаётся ровным кругом. Только для мыши, при «уменьшении
-       движения» выключен. */
+       движения» выключен. */
     var cursor = null, cursorBlob = null;
     var mouse = { x: innerWidth / 2, y: innerHeight / 2 }, cur = { x: mouse.x, y: mouse.y };
     if (finePointer && !reduceMotion && document.querySelector('[data-cursor]')) {
