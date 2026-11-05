@@ -1,0 +1,11 @@
+{
+  "name": "F.22 — дизайн-лаборатория коммерческих пространств",
+  "short_name": "F.22",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#1d1c1a",
+  "background_color": "#1d1c1a",
+  "display": "browser"
+}
