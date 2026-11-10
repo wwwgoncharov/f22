@@ -43,10 +43,13 @@
       var hdr = document.getElementById('siteHeader');
       if (!hdr) return;
       var inProjects = /\/projects\//.test(location.pathname);
-      var home = inProjects ? '../index.html' : '';
+      var onHome = !!document.querySelector('.hero');
+      var onPrice = !!document.querySelector('[data-price-table]');
+      // ссылки на разделы главной: с самой главной — якоря, с остальных страниц — переход
+      var home = inProjects ? '../index.html' : (onHome ? '' : 'index.html');
+      var priceHref = (inProjects ? '../' : '') + 'price.html';
       var pdir = inProjects ? '' : 'projects/';
       var img = inProjects ? '../images/home/' : 'images/home/';
-      var onHome = !!document.querySelector('.hero');
       var arrowOut = '<span class="arrow arrow--out"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 11.5l7-7M5.5 4.5h6v6"/></svg><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 11.5l7-7M5.5 4.5h6v6"/></svg></span>';
       var projects = [
         ['entrance-malina-park', 'Входные группы ЖК «Малина Парк»', 'Девелопмент, Ростов-на-Дону, 2025', '11G11G458MPY3BJP7VB8PRRKVY'],
@@ -57,7 +60,8 @@
         ['house', 'Частный дом 318 м²', 'Частный интерьер, концепт, 2026', '0J0ZRATZMKKG4VMBTREP3DQH4H', 'wip']
       ];
       var current = (location.pathname.match(/projects\/([^\/]+)\.html/) || [])[1];
-      var sections = [['about', 'Обо мне'], ['projects', 'Проекты'], ['services', 'Услуги'], ['process', 'Этапы работы'], ['contacts', 'Контакты']];
+      // третий элемент — своя ссылка (отдельная страница или якорь на этой же)
+      var sections = [['about', 'Обо мне'], ['projects', 'Проекты'], ['services', 'Услуги'], ['price', 'Стоимость', priceHref], ['process', 'Этапы работы'], ['contacts', 'Контакты', onPrice ? '#contacts' : '']];
 
       // готовые проекты — ссылками; проекты в разработке — отдельной группой внизу, без перехода
       var ready = projects.filter(function (p) { return !p[4]; });
@@ -79,7 +83,7 @@
 
       var navHtml = sections.map(function (s, i) {
         var num = '<span class="m-menu__num">0' + (i + 1) + '</span>';
-        var link = '<a class="m-menu__link" href="' + home + '#' + s[0] + '"' + (onHome ? ' data-spy="' + s[0] + '"' : '') + '>' + num +
+        var link = '<a class="m-menu__link' + (s[0] === 'price' && onPrice ? ' is-active' : '') + '" href="' + (s[2] || home + '#' + s[0]) + '"' + (onHome && !s[2] ? ' data-spy="' + s[0] + '"' : '') + '>' + num +
           '<span class="m-menu__mask"><span class="m-menu__label">' + s[1] + (s[0] === 'projects' ? '<sup>' + ready.length + '</sup>' : '') + '</span></span></a>';
         if (s[0] !== 'projects') return '<li class="m-menu__item">' + link + '</li>';
         return '<li class="m-menu__item m-menu__item--sub' + (current ? ' is-open' : '') + '"><div class="m-menu__row">' + link +
@@ -457,6 +461,41 @@
         }, { threshold: 0.3 });
         markIO.observe(mark);
       }
+    }
+
+    /* ---------- прайс: выбор пакета ----------
+       ПК: колонка пакета подсвечивается при наведении, клик закрепляет выбор
+       (повторный клик снимает). Телефон: три пакета работают как переключатель,
+       ниже остаётся один список работ для выбранного пакета. */
+    var priceTable = document.querySelector('[data-price-table]');
+    if (priceTable) {
+      var packs = priceTable.querySelectorAll('.pt-pack');
+      var wideTable = window.matchMedia('(min-width: 861px)');
+      var pinned = null;
+      var showPack = function (n) {
+        if (n) priceTable.setAttribute('data-show', n); else priceTable.removeAttribute('data-show');
+      };
+      var syncPacks = function () {
+        var on = wideTable.matches ? pinned : priceTable.getAttribute('data-pick');
+        packs.forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-pack') === on ? 'true' : 'false'); });
+      };
+      packs.forEach(function (b) {
+        var n = b.getAttribute('data-pack');
+        b.addEventListener('click', function () {
+          pinned = (wideTable.matches && pinned === n) ? null : n;
+          if (pinned) priceTable.setAttribute('data-pick', pinned);
+          showPack(pinned);
+          syncPacks();
+        });
+        if (finePointer) {
+          b.addEventListener('mouseenter', function () { showPack(n); });
+          b.addEventListener('mouseleave', function () { showPack(pinned); });
+        }
+        b.addEventListener('focus', function () { if (b.matches(':focus-visible')) showPack(n); });
+        b.addEventListener('blur', function () { showPack(pinned); });
+      });
+      syncPacks();
+      wideTable.addEventListener('change', syncPacks);
     }
 
     /* ---------- копирование почты ---------- */
