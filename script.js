@@ -8,6 +8,9 @@
   'use strict';
 
   var root = document.documentElement;
+  // корень сайта = папка, где лежит script.js (работает и на домене, и локально)
+  var scriptEl = document.currentScript;
+  var SITE = scriptEl ? scriptEl.src.replace(/script\.js(\?.*)?$/, '') : '/';
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   var lerp = function (a, b, t) { return a + (b - a) * t; };
@@ -42,14 +45,14 @@
     (function buildMobileMenu() {
       var hdr = document.getElementById('siteHeader');
       if (!hdr) return;
-      var inProjects = /\/projects\//.test(location.pathname);
       var onHome = !!document.querySelector('.hero');
       var onPrice = !!document.querySelector('[data-price-table]');
+      // адреса без «.html»: страницы лежат папками (price/, projects/fromage/)
       // ссылки на разделы главной: с самой главной — якоря, с остальных страниц — переход
-      var home = inProjects ? '../index.html' : (onHome ? '' : 'index.html');
-      var priceHref = (inProjects ? '../' : '') + 'price.html';
-      var pdir = inProjects ? '' : 'projects/';
-      var img = inProjects ? '../images/home/' : 'images/home/';
+      var home = onHome ? '' : SITE;
+      var priceHref = SITE + 'price/';
+      var pdir = SITE + 'projects/';
+      var img = SITE + 'images/home/';
       var arrowOut = '<span class="arrow arrow--out"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 11.5l7-7M5.5 4.5h6v6"/></svg><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 11.5l7-7M5.5 4.5h6v6"/></svg></span>';
       var projects = [
         ['entrance-malina-park', 'Входные группы ЖК «Малина Парк»', 'Девелопмент, Ростов-на-Дону, 2025', '11G11G458MPY3BJP7VB8PRRKVY'],
@@ -59,7 +62,7 @@
         ['showroom-malina-park', 'Шоурум ЖК «Малина Парк»', 'Девелопмент, Ростов-на-Дону, 2025', '2ZYSMY14TABPABFVN132NM559C'],
         ['house', 'Частный дом 318 м²', 'Частный интерьер, концепт, 2026', '0J0ZRATZMKKG4VMBTREP3DQH4H', 'wip']
       ];
-      var current = (location.pathname.match(/projects\/([^\/]+)\.html/) || [])[1];
+      var current = (location.pathname.match(/projects\/([^\/.]+)/) || [])[1];
       // третий элемент — своя ссылка (отдельная страница или якорь на этой же)
       var sections = [['about', 'Обо мне'], ['projects', 'Проекты'], ['services', 'Услуги'], ['price', 'Стоимость', priceHref], ['process', 'Этапы работы'], ['contacts', 'Контакты', onPrice ? '#contacts' : '']];
 
@@ -67,7 +70,7 @@
       var ready = projects.filter(function (p) { return !p[4]; });
       var wip = projects.filter(function (p) { return p[4] === 'wip'; });
       var subHtml = ready.map(function (p) {
-        return '<li><a class="m-menu__project' + (p[0] === current ? ' is-current' : '') + '" href="' + pdir + p[0] + '.html">' +
+        return '<li><a class="m-menu__project' + (p[0] === current ? ' is-current' : '') + '" href="' + pdir + p[0] + '/">' +
           '<span class="m-menu__thumb"><img src="' + img + p[3] + '.webp" alt="" loading="lazy" decoding="async"></span>' +
           '<span class="m-menu__ptext"><span class="m-menu__ptitle">' + p[1] + '</span><span class="m-menu__pinfo">' + p[2] + '</span></span>' +
           '<span class="m-menu__parrow">' + arrowOut + '</span></a></li>';
